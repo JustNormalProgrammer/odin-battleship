@@ -47,6 +47,7 @@ export default class Gameboard {
     }
     const ship = this.board[x][y];
     ship.hit();
+    this.board[x][y] = null;
     return true;
   }
   allShipsSunk() {
