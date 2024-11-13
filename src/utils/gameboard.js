@@ -40,15 +40,16 @@ export default class Gameboard {
     return this.board[x][y] !== null;
   }
   receiveAttack(x, y) {
-    if (!this.validateCoordinates(x, y)) return false;
+    if (!this.validateCoordinates(x, y)) return null;
+    if (this.missed.includes([x, y])) return null;
     if (!this.checkIfShipOnCords(x, y)) {
       this.missed.push([x, y]);
-      return false;
+      return null;
     }
     const ship = this.board[x][y];
     ship.hit();
     this.board[x][y] = null;
-    return true;
+    return ship;
   }
   allShipsSunk() {
     if (this.ships.length === 0) return false;
