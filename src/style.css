@@ -20,12 +20,13 @@
 .ship {
   background-color: blue;
 }
-.sunk {
-  background-color: black;
-}
+
 .miss {
   background-color: grey;
 }
 .hit {
   background-color: pink;
+}
+.sunk {
+  background-color: black;
 }

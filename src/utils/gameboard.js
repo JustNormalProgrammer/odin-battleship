@@ -4,7 +4,7 @@ export default class Gameboard {
   constructor() {
     this.board = Array.from(Array(10), () => new Array(10).fill(null));
     this.missed = [];
-    this.ships = [];
+    this.ships = new Map();
   }
   placeShip(ship, start, isHorizontal = true) {
     let shipsCords = [];
@@ -30,7 +30,7 @@ export default class Gameboard {
     for (let cord of shipsCords) {
       this.board[cord[0]][cord[1]] = ship;
     }
-    this.ships.push(ship);
+    this.ships.set(ship, shipsCords);
     return shipsCords;
   }
   validateCoordinates(x, y) {
@@ -38,6 +38,9 @@ export default class Gameboard {
   }
   checkIfShipOnCords(x, y) {
     return this.board[x][y] !== null;
+  }
+  getShipCords(ship) {
+    return this.ships.get(ship);
   }
   receiveAttack(x, y) {
     if (!this.validateCoordinates(x, y)) return null;
@@ -53,7 +56,7 @@ export default class Gameboard {
   }
   allShipsSunk() {
     if (this.ships.length === 0) return false;
-    for (let ship of this.ships) {
+    for (let ship of this.ships.keys()) {
       if (!ship.checkIfSunk()) {
         return false;
       }
