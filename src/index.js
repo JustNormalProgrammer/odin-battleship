@@ -8,6 +8,7 @@ const gameController = function () {
   const player2 = new Player();
   let activePlayer = player1;
   let attackedPlayer = player2;
+  let isGameOver = false;
   function getPlayers() {
     return [player1, player2];
   }
@@ -21,16 +22,24 @@ const gameController = function () {
   function getAttackedPlayer() {
     return attackedPlayer;
   }
+  function checkIfGameOver() {
+    return attackedPlayer.getBoard().allShipsSunk();
+  }
   player1.gameboard.placeShip(new Ship(3), [1, 0]);
   player2.gameboard.placeShip(new Ship(3), [1, 0], false);
-  console.log(player1.gameboard);
 
-  return { getPlayers, getActivePlayer, getAttackedPlayer, switchActivePlayer };
+  return {
+    getPlayers,
+    getActivePlayer,
+    getAttackedPlayer,
+    switchActivePlayer,
+    checkIfGameOver,
+  };
 };
 const screenController = function () {
-  const game = gameController();
-  let [player1, player2] = game.getPlayers();
-
+  let game;
+  let player1, player2;
+  startNewGame();
   function createBoards() {
     const container = document.querySelector(".container");
     const gameboard1 = document.createElement("div");
@@ -41,11 +50,11 @@ const screenController = function () {
       let cell1 = document.createElement("div");
       let cell2 = document.createElement("div");
       cell2.dataset.id = i;
-      cell2.dataset.board = "2";
+      cell2.dataset.board = player2.getId();
       cell2.classList.add("cell");
       gameboard2.appendChild(cell2);
       cell1.dataset.id = i;
-      cell1.dataset.board = "1";
+      cell1.dataset.board = player1.getId();
       cell1.classList.add("cell");
       cell1.addEventListener("click", handleAttack);
       cell2.addEventListener("click", handleAttack);
@@ -55,8 +64,9 @@ const screenController = function () {
     container.appendChild(gameboard2);
   }
   function renderShips(player) {
-    let idx = getPlayerIdx(player);
-    let buttonBoard1 = document.querySelectorAll(`[data-board = "${idx}"]`);
+    let buttonBoard1 = document.querySelectorAll(
+      `[data-board = "${player.getId()}"]`,
+    );
 
     for (let i = 0; i < 100; i++) {
       const x = Math.floor(i / 10);
@@ -66,15 +76,22 @@ const screenController = function () {
       }
     }
   }
-  function getPlayerIdx(player) {
-    return player === player1 ? 1 : 2;
+  function renderFinalMessage() {
+    const div = document.querySelector(".final-msg");
+    div.textContent = `Congrats player${game.getActivePlayer().getId()}. You've won!`;
+  }
+  function startNewGame() {
+    game = new gameController();
+    [player1, player2] = game.getPlayers();
   }
   function handleAttack() {
     const activeBoard = game.getActivePlayer().getBoard();
     const clickedBoard =
-      this.dataset.board == 1 ? player1.getBoard() : player2.getBoard();
+      this.dataset.board == player1.getId()
+        ? player1.getBoard()
+        : player2.getBoard();
 
-    if (activeBoard === clickedBoard) return;
+    if (activeBoard === clickedBoard || game.checkIfGameOver()) return;
     let cellIdx = this.dataset.id;
     const ship = clickedBoard.receiveAttack(
       Math.floor(cellIdx / 10),
@@ -85,12 +102,17 @@ const screenController = function () {
       for (let cord of game.getAttackedPlayer().getBoard().getShipCords(ship)) {
         let idx = cord[0] * 10 + cord[1];
         let button = document.querySelector(
-          `[data-id = "${idx}"][data-board = "${getPlayerIdx(game.getAttackedPlayer)}"]`,
+          `[data-id = "${idx}"][data-board = "${game.getAttackedPlayer().getId()}"]`,
         );
         console.log(button);
         button.classList.add("sunk");
       }
+      if (game.checkIfGameOver()) {
+        renderFinalMessage();
+        return;
+      }
     }
+    game.switchActivePlayer();
     return;
   }
 
