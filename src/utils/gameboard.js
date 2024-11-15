@@ -31,7 +31,7 @@ export default class Gameboard {
       this.board[cord[0]][cord[1]] = ship;
     }
     this.ships.set(ship, shipsCords);
-    return shipsCords;
+    return true;
   }
   validateCoordinates(x, y) {
     return x >= 0 && x <= 9 && y >= 0 && y <= 9;
@@ -47,7 +47,7 @@ export default class Gameboard {
     if (this.missed.includes([x, y])) return null;
     if (!this.checkIfShipOnCords(x, y)) {
       this.missed.push([x, y]);
-      return null;
+      return false;
     }
     const ship = this.board[x][y];
     ship.hit();
