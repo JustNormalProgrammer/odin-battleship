@@ -30,6 +30,7 @@ const gameController = function (isSinglePlayer) {
     while (result === null) {
       result = player1.getBoard().receiveAttack(x, y);
       if (result !== null) {
+        console.log([x, y]);
         return [[x, y], result];
       }
       x = Math.floor(Math.random() * 10);
@@ -87,7 +88,8 @@ const screenController = function () {
     container.appendChild(gameboard2);
   }
   function moveController(div) {
-    handleAttack(div);
+    let isValid = handleAttack(div);
+    if (!isValid) return;
     if (game.checkIfGameOver()) {
       renderFinalMessage();
       return;
@@ -99,6 +101,10 @@ const screenController = function () {
         `[data-id = "${idx}"][data-board = "${game.getAttackedPlayer().getId()}"]`,
       );
       markCell(div, result);
+      if (game.checkIfGameOver()) {
+        renderFinalMessage();
+        return;
+      }
       game.switchActivePlayer();
     }
   }
@@ -129,14 +135,14 @@ const screenController = function () {
         ? player1.getBoard()
         : player2.getBoard();
 
-    if (activeBoard === clickedBoard || game.checkIfGameOver()) return;
+    if (activeBoard === clickedBoard || game.checkIfGameOver()) return false;
     let cellIdx = div.dataset.id;
     const result = clickedBoard.receiveAttack(
       Math.floor(cellIdx / 10),
       cellIdx % 10,
     );
     markCell(div, result);
-    return;
+    return true;
   }
   function markCell(div, result) {
     result ? div.classList.add("hit") : div.classList.add("miss");

@@ -44,7 +44,12 @@ export default class Gameboard {
   }
   receiveAttack(x, y) {
     if (!this.validateCoordinates(x, y)) return null;
-    if (this.missed.includes([x, y])) return null;
+    if (
+      this.missed.some((subArr) => {
+        return subArr[0] === x && subArr[1] === y;
+      })
+    )
+      return null;
     if (!this.checkIfShipOnCords(x, y)) {
       this.missed.push([x, y]);
       return false;
