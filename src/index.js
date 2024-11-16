@@ -8,7 +8,6 @@ const gameController = function (isSinglePlayer) {
   const player2 = new Player();
   let activePlayer = player1;
   let attackedPlayer = player2;
-  let isGameOver = false;
   function getPlayers() {
     return [player1, player2];
   }
@@ -23,7 +22,6 @@ const gameController = function (isSinglePlayer) {
     attackedPlayer = attackedPlayer === player1 ? player2 : player1;
   }
   function computerMove() {
-    let validMove;
     let x = Math.floor(Math.random() * 10);
     let y = Math.floor(Math.random() * 10);
     let result = null;
@@ -59,7 +57,20 @@ const gameController = function (isSinglePlayer) {
 const screenController = function () {
   let game;
   let player1, player2;
-  startNewGame(true);
+  const single = document.querySelector("#single");
+  const multi = document.querySelector("#multi");
+  const btngroup = document.querySelector(".btn-group");
+  single.addEventListener("click", (e) => {
+    hideButtons();
+    startNewGame(true);
+  });
+  multi.addEventListener("click", (e) => {
+    hideButtons();
+    startNewGame(false);
+  });
+  function hideButtons() {
+    btngroup.style.display = "none";
+  }
   function createBoards() {
     const container = document.querySelector(".container");
     const gameboard1 = document.createElement("div");
@@ -90,11 +101,13 @@ const screenController = function () {
   function moveController(div) {
     let isValid = handleAttack(div);
     if (!isValid) return;
+
     if (game.checkIfGameOver()) {
       renderFinalMessage();
       return;
-    } else if (game.checkIfGameTypeSingle()) {
-      game.switchActivePlayer();
+    }
+    game.switchActivePlayer();
+    if (game.checkIfGameTypeSingle()) {
       const [move, result] = game.computerMove();
       const idx = move[0] * 10 + move[1];
       const div = document.querySelector(
@@ -127,6 +140,27 @@ const screenController = function () {
   function startNewGame(isSinglePlayer) {
     game = new gameController(isSinglePlayer);
     [player1, player2] = game.getPlayers();
+    createBoards();
+    createShips();
+    renderShips(player1);
+  }
+  function createShips() {
+    const body = document.querySelector("body");
+    const fleetContainer = document.createElement("div");
+    fleetContainer.classList.add("fleet-container");
+    let shipContainer;
+    let cell;
+    for (let i = 1; i <= 4; i++) {
+      shipContainer = document.createElement("div");
+      shipContainer.classList.add("ship-container");
+      for (let j = 1; j <= i; j++) {
+        cell = document.createElement("div");
+        cell.classList.add("cell", "ship");
+        shipContainer.appendChild(cell);
+      }
+      fleetContainer.appendChild(shipContainer);
+    }
+    body.appendChild(fleetContainer);
   }
   function handleAttack(div) {
     const activeBoard = game.getActivePlayer().getBoard();
@@ -159,7 +193,5 @@ const screenController = function () {
       }
     }
   }
-  createBoards();
-  renderShips(player1);
 };
 screenController();
