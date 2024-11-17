@@ -86,6 +86,9 @@ const screenController = function () {
     hideMainButtons();
     startNewGame(false);
   });
+  document.body.addEventListener("keydown", (e) => {
+    if (e.key === " ") closePassScreen();
+  });
   function hideMainButtons() {
     btngroup.style.display = "none";
   }
@@ -165,10 +168,22 @@ const screenController = function () {
         renderFinalMessage();
         return;
       }
+      game.switchActivePlayer();
     } else {
+      showPassScreen();
       hideShips(game.getAttackedPlayer());
       renderShips(game.getActivePlayer());
     }
+  }
+  function showPassScreen() {
+    const div = document.createElement("div");
+    div.classList.add("pass-screen");
+    div.textContent =
+      "Pass the screen to the other player! Press 'space' to continue";
+    document.body.appendChild(div);
+  }
+  function closePassScreen() {
+    document.body.removeChild(document.querySelector(".pass-screen"));
   }
   function renderShips(player) {
     let buttonBoard1 = document.querySelectorAll(

@@ -1,5 +1,7 @@
 body {
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 .container {
   gap: 12%;
@@ -76,6 +78,19 @@ body {
   outline: none;
   border: none;
   transition: 0.7s ease-out;
+}
+.pass-screen {
+  top: 0;
+  position: absolute;
+  z-index: 1000;
+  background-color: rgb(65, 228, 228);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  font-weight: 700;
 }
 .success {
   background-color: rgb(130, 255, 161);
