@@ -21,6 +21,25 @@ const gameController = function (isSinglePlayer) {
     activePlayer = activePlayer === player1 ? player2 : player1;
     attackedPlayer = attackedPlayer === player1 ? player2 : player1;
   }
+  function placeRandomShips(player) {
+    let ship;
+    let isHorizontal;
+    let x;
+    let y;
+    let result = false;
+    let cords = [];
+    for (let i = 0; i < 5; i++) {
+      ship = new Ship(i + 1);
+      while (!result) {
+        isHorizontal = Math.random() > 0.5 ? true : false;
+        x = Math.floor(Math.random() * 10);
+        y = Math.floor(Math.random() * 10);
+        result = player.getBoard().placeShip(ship, [x, y], isHorizontal);
+      }
+      result = false;
+    }
+    return;
+  }
   function computerMove() {
     let x = Math.floor(Math.random() * 10);
     let y = Math.floor(Math.random() * 10);
@@ -41,8 +60,6 @@ const gameController = function (isSinglePlayer) {
   function checkIfGameOver() {
     return attackedPlayer.getBoard().allShipsSunk();
   }
-  player1.gameboard.placeShip(new Ship(3), [1, 0]);
-  player2.gameboard.placeShip(new Ship(3), [1, 0], false);
 
   return {
     getPlayers,
@@ -51,6 +68,7 @@ const gameController = function (isSinglePlayer) {
     switchActivePlayer,
     computerMove,
     checkIfGameOver,
+    placeRandomShips,
     checkIfGameTypeSingle,
   };
 };
@@ -70,6 +88,21 @@ const screenController = function () {
   });
   function hideButtons() {
     btngroup.style.display = "none";
+  }
+  function createRandomShipsButton() {
+    const body = document.querySelector("body");
+    ``;
+    const shipBtnGroup = document.createElement("div");
+    shipBtnGroup.classList.add("ship-btn-group");
+    const randomBtn = document.createElement("button");
+    const refreshBtn = document.createElement("button");
+    randomBtn.textContent = "Randomize positions";
+    refreshBtn.textContent = "Accept";
+    randomBtn.classList.add("danger");
+    refreshBtn.classList.add("success");
+    shipBtnGroup.appendChild(randomBtn);
+    shipBtnGroup.appendChild(refreshBtn);
+    body.appendChild(shipBtnGroup);
   }
   function createBoards() {
     const container = document.querySelector(".container");
@@ -141,27 +174,14 @@ const screenController = function () {
     game = new gameController(isSinglePlayer);
     [player1, player2] = game.getPlayers();
     createBoards();
-    createShips();
+    game.placeRandomShips(player1);
+    createRandomShipsButton();
+    if (isSinglePlayer) {
+      game.placeRandomShips(player2);
+    }
     renderShips(player1);
   }
-  function createShips() {
-    const body = document.querySelector("body");
-    const fleetContainer = document.createElement("div");
-    fleetContainer.classList.add("fleet-container");
-    let shipContainer;
-    let cell;
-    for (let i = 1; i <= 4; i++) {
-      shipContainer = document.createElement("div");
-      shipContainer.classList.add("ship-container");
-      for (let j = 1; j <= i; j++) {
-        cell = document.createElement("div");
-        cell.classList.add("cell", "ship");
-        shipContainer.appendChild(cell);
-      }
-      fleetContainer.appendChild(shipContainer);
-    }
-    body.appendChild(fleetContainer);
-  }
+
   function handleAttack(div) {
     const activeBoard = game.getActivePlayer().getBoard();
     const clickedBoard =

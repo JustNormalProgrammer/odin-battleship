@@ -12,4 +12,7 @@ export default class Player {
   getId() {
     return this.id;
   }
+  resetBoard() {
+    this.gameboard = new Gameboard();
+  }
 }
