@@ -8,6 +8,7 @@ const gameController = function (isSinglePlayer) {
   const player2 = new Player();
   let activePlayer = player1;
   let attackedPlayer = player2;
+  let isReady = false;
   function getPlayers() {
     return [player1, player2];
   }
@@ -27,7 +28,6 @@ const gameController = function (isSinglePlayer) {
     let x;
     let y;
     let result = false;
-    let cords = [];
     for (let i = 0; i < 5; i++) {
       ship = new Ship(i + 1);
       while (!result) {
@@ -79,14 +79,14 @@ const screenController = function () {
   const multi = document.querySelector("#multi");
   const btngroup = document.querySelector(".btn-group");
   single.addEventListener("click", (e) => {
-    hideButtons();
+    hideMainButtons();
     startNewGame(true);
   });
   multi.addEventListener("click", (e) => {
-    hideButtons();
+    hideMainButtons();
     startNewGame(false);
   });
-  function hideButtons() {
+  function hideMainButtons() {
     btngroup.style.display = "none";
   }
   function createRandomShipsButton() {
@@ -103,6 +103,11 @@ const screenController = function () {
     shipBtnGroup.appendChild(randomBtn);
     shipBtnGroup.appendChild(refreshBtn);
     body.appendChild(shipBtnGroup);
+    return [randomBtn, refreshBtn];
+  }
+  function hideRandomShipsButtons() {
+    const shipBtnGroup = document.querySelector(".ship-btn-group");
+    shipBtnGroup.style.display = "none";
   }
   function createBoards() {
     const container = document.querySelector(".container");
@@ -131,7 +136,16 @@ const screenController = function () {
     container.appendChild(gameboard1);
     container.appendChild(gameboard2);
   }
+  function hideShips(player) {
+    const buttonBoard1 = document.querySelectorAll(
+      `[data-board = "${player.getId()}"]`,
+    );
+    for (let i = 0; i < buttonBoard1.length; i++) {
+      buttonBoard1[i].classList.remove("ship");
+    }
+  }
   function moveController(div) {
+    if (!game.isReady) return;
     let isValid = handleAttack(div);
     if (!isValid) return;
 
@@ -151,7 +165,9 @@ const screenController = function () {
         renderFinalMessage();
         return;
       }
-      game.switchActivePlayer();
+    } else {
+      hideShips(game.getAttackedPlayer());
+      renderShips(game.getActivePlayer());
     }
   }
   function renderShips(player) {
@@ -161,6 +177,7 @@ const screenController = function () {
     for (let i = 0; i < 100; i++) {
       const x = Math.floor(i / 10);
       const y = i % 10;
+      buttonBoard1[i].classList.remove("ship");
       if (player.gameboard.checkIfShipOnCords(x, y)) {
         buttonBoard1[i].classList.add("ship");
       }
@@ -171,15 +188,37 @@ const screenController = function () {
     div.textContent = `Congrats player${game.getActivePlayer().getId()}. You've won!`;
   }
   function startNewGame(isSinglePlayer) {
+    let isfirstPlayerReady = false;
     game = new gameController(isSinglePlayer);
     [player1, player2] = game.getPlayers();
     createBoards();
-    game.placeRandomShips(player1);
-    createRandomShipsButton();
-    if (isSinglePlayer) {
-      game.placeRandomShips(player2);
-    }
-    renderShips(player1);
+    game.placeRandomShips(game.getActivePlayer());
+    const [randomBtn, acceptBtn] = createRandomShipsButton();
+    randomBtn.addEventListener("click", () => {
+      game.getActivePlayer().resetBoard();
+      game.placeRandomShips(game.getActivePlayer());
+      renderShips(game.getActivePlayer());
+    });
+    acceptBtn.addEventListener("click", () => {
+      if (isSinglePlayer) {
+        hideRandomShipsButtons();
+        game.placeRandomShips(game.getAttackedPlayer());
+        game.isReady = true;
+      } else {
+        if (isfirstPlayerReady) {
+          hideRandomShipsButtons();
+          game.isReady = true;
+          return;
+        } else {
+          isfirstPlayerReady = true;
+        }
+        hideShips(game.getActivePlayer());
+        game.switchActivePlayer();
+        game.placeRandomShips(game.getActivePlayer());
+        renderShips(game.getActivePlayer());
+      }
+    });
+    renderShips(game.getActivePlayer());
   }
 
   function handleAttack(div) {
@@ -195,6 +234,7 @@ const screenController = function () {
       Math.floor(cellIdx / 10),
       cellIdx % 10,
     );
+    if (result === null) return null;
     markCell(div, result);
     return true;
   }
